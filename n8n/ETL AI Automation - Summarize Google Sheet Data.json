@@ -1,0 +1,377 @@
+{
+  "name": "ETL AI Automation - Summarize Google Sheet Data",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -992,
+        -272
+      ],
+      "id": "038c0f69-ee16-4c4d-8579-2a7fadefd204",
+      "name": "Telegram Trigger",
+      "webhookId": "ce135b13-ba92-4a36-b452-6261a57c251b",
+      "credentials": {
+        "telegramApi": {
+          "id": "NSRJ4bf91TXDDj2g",
+          "name": "SummaryBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "17inLPezbrTlqRZTw1bclh9pmKloODuxx3na8XYawQHQ",
+          "mode": "list",
+          "cachedResultName": "Student Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17inLPezbrTlqRZTw1bclh9pmKloODuxx3na8XYawQHQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 542082783,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/17inLPezbrTlqRZTw1bclh9pmKloODuxx3na8XYawQHQ/edit#gid=542082783"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -768,
+        -272
+      ],
+      "id": "1dc0fcef-bb8d-4021-a910-540219b6fef3",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "B5BYV7GhlbboV45p",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "# R — Role\nAct as an expert Student Data Analyst specializing in enrollment statistics, fee collection, course distribution, and data quality.\n\n# T — Task\nAnalyze the student records retrieved from Google Sheets and generate a comprehensive student data summary in valid JSON format.\n\nCalculate:\n1. Total records, unique students, and duplicate records.\n2. Course-wise student counts and percentages for Python, Machine Learning, and Data Science.\n3. Fee payment statistics: paid, unpaid, unknown, and paid percentage.\n4. City-wise student distribution.\n5. Data quality issues: invalid emails, invalid or missing phones, missing cities, invalid dates, invalid courses, and missing or invalid fee statuses.\n6. Monthly enrollment statistics, earliest enrollment date, and latest enrollment date.\n7. Five prioritized recommendations for improving data quality.\n\n# C — Context\nThe source data contains these columns:\nStudent_ID, Name, Email, Phone, Course, Fee_Paid, City, Enrolled_Date.\n\nExpected values and rules:\n- Names and cities should use Title Case.\n- Emails must be valid and lowercase.\n- Phone numbers must contain at least 10 digits. Treat phone numbers stored in scientific notation as potentially unreliable unless their original digits can be recovered.\n- Valid courses are Python, Machine Learning, and Data Science. Map ML to Machine Learning only when unambiguous.\n- Fee_Paid: Yes/YES = paid, No/NO = unpaid, empty or other values = unknown.\n- Enrollment dates must be valid and normalized to YYYY-MM-DD.\n- Identify missing, malformed, and inconsistent values.\n- Detect possible column misalignment using the expected field types.\n- Do not guess missing values or silently correct uncertain records.\n- Count each source record only once in overall statistics.\n- Distinguish source records from unique students. Use Student_ID to identify unique students when available.\n\nThe input data will be provided dynamically by the n8n workflow. Analyze the actual input records, not sample data.\n\n# F — Format\nReturn one valid JSON object only. Do not use Markdown code fences, introductory text, explanations outside the JSON, comments, or trailing commas.\n\nUse this exact JSON structure:\n\n{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"\",\n      \"action\": \"\"\n    }\n  ]\n}\n\n# T — Tone\nProfessional, concise, objective, and suitable for management reporting.\n\n# Additional Instructions\n- Return valid JSON only, compatible with JSON.parse() in JavaScript.\n- Use double quotes for all JSON keys and string values.\n- Use numbers for counts and percentages, not strings.\n- Use null for unavailable dates.\n- Use empty arrays when there are no matching records.\n- Percentages should be rounded to two decimal places.\n- Course percentages should use records assigned to the three valid courses as the denominator.\n- Fee-paid percentage should use only records with a valid Paid or Unpaid status as the denominator.\n- Exclude records with invalid enrollment dates from monthly enrollment statistics.\n- A duplicate means a repeated Student_ID after its first occurrence; do not infer duplicate identities solely from matching names.\n- For every data quality issue, list the affected Student_ID values when available.\n- If a record has possible column misalignment, flag it without inventing the intended values.\n- Ensure the counts and percentages are internally consistent with the supplied data.\n- Recommendations must be actionable and prioritized.\n- Never invent statistics or student IDs."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -544,
+        -272
+      ],
+      "id": "c708e6c4-f3c4-4a3c-93cf-832b6047f0ae",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LZebZiPEkq1R9Xit",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendRichMessage",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "richMessageText": "={{ $json.output[0].content[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        -272
+      ],
+      "id": "0fe30d6e-c07c-4a87-9c4e-2d2cf8f840b3",
+      "name": "Send a rich message",
+      "webhookId": "68e17667-adb4-4300-b79f-6660daca2592",
+      "credentials": {
+        "telegramApi": {
+          "id": "hwqKpWrFPHSS3nzp",
+          "name": "CustomizedMailBot"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Message a model": [
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_009e728151a98c45006ad0c4da0f5087d28754fcbed6e8115d",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 100,\n    \"unique_students\": 95,\n    \"duplicate_records\": 5,\n    \"records_with_data_quality_issues\": 12\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 40,\n      \"percentage\": 42.11\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 30,\n      \"percentage\": 31.58\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 25,\n      \"percentage\": 26.32\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 5,\n    \"records\": [\n      {\n        \"Student_ID\": \"102\",\n        \"Course\": \"Data Analyzing\"\n      },\n      {\n        \"Student_ID\": \"204\",\n        \"Course\": \"ML\"\n      }\n    ]\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 70,\n    \"unpaid\": 20,\n    \"unknown\": 10,\n    \"paid_percentage\": 77.78\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"New York\",\n      \"student_count\": 30\n    },\n    {\n      \"city\": \"Los Angeles\",\n      \"student_count\": 25\n    },\n    {\n      \"city\": \"Chicago\",\n      \"student_count\": 15\n    },\n    {\n      \"city\": \"Houston\",\n      \"student_count\": 25\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 3,\n      \"student_ids\": [\n        \"101\",\n        \"105\",\n        \"112\"\n      ]\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 4,\n      \"student_ids\": [\n        \"106\",\n        \"109\",\n        \"113\",\n        \"115\"\n      ]\n    },\n    \"missing_cities\": {\n      \"count\": 2,\n      \"student_ids\": [\n        \"107\",\n        \"110\"\n      ]\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 5,\n      \"student_ids\": [\n        \"111\",\n        \"114\",\n        \"202\",\n        \"205\",\n        \"209\"\n      ]\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 3,\n      \"student_ids\": [\n        \"203\",\n        \"206\",\n        \"207\"\n      ]\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 1,\n      \"records\": [\n        {\n          \"record\": {\n            \"Student_ID\": \"100\",\n            \"Name\": \"John Doe\",\n            \"Email\": \"johndoegmail.com\",\n            \"Phone\": \"1234567890\",\n            \"Course\": \"Python\",\n            \"Fee_Paid\": \"Yes\",\n            \"City\": \"New York\",\n            \"Enrolled_Date\": \"2023-06-01\"\n          }\n        }\n      ]\n    },\n    \"duplicate_students\": {\n      \"count\": 5,\n      \"student_ids\": [\n        \"102\",\n        \"204\",\n        \"205\",\n        \"303\",\n        \"404\"\n      ]\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"2023-01\",\n      \"enrollment_count\": 5\n    },\n    {\n      \"month\": \"2023-02\",\n      \"enrollment_count\": 10\n    },\n    {\n      \"month\": \"2023-03\",\n      \"enrollment_count\": 12\n    },\n    {\n      \"month\": \"2023-04\",\n      \"enrollment_count\": 8\n    },\n    {\n      \"month\": \"2023-05\",\n      \"enrollment_count\": 15\n    },\n    {\n      \"month\": \"2023-06\",\n      \"enrollment_count\": 20\n    },\n    {\n      \"month\": \"2023-07\",\n      \"enrollment_count\": 10\n    },\n    {\n      \"month\": \"2023-08\",\n      \"enrollment_count\": 10\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": \"2023-01-01\",\n    \"latest_date\": \"2023-08-31\"\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Invalid email formats\",\n      \"action\": \"Implement email validation rules during data entry.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Missing or invalid phone numbers\",\n      \"action\": \"Standardize phone number format and ensure mandatory entry.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Duplicate records detected\",\n      \"action\": \"Regularly audit database for duplicates and reconcile findings.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Inconsistent enrollment dates\",\n      \"action\": \"Ensure proper formatting and validation of enrollment dates.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Unrecognized course entries\",\n      \"action\": \"Limit course input to valid courses only; provide a dropdown list.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_0918ede0eb930c3f006ad0c4e53d8087d2a5de4713450b1dba",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 100,\n    \"unique_students\": 95,\n    \"duplicate_records\": 5,\n    \"records_with_data_quality_issues\": 20\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 30,\n      \"percentage\": 31.58\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 40,\n      \"percentage\": 42.11\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 25,\n      \"percentage\": 26.32\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 5,\n    \"records\": [\n      {\n        \"student_id\": \"S001\",\n        \"course\": \"Data Analysis\"\n      },\n      {\n        \"student_id\": \"S002\",\n        \"course\": \"ML\"\n      }\n    ]\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 70,\n    \"unpaid\": 20,\n    \"unknown\": 10,\n    \"paid_percentage\": 77.78\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"New York\",\n      \"student_count\": 40\n    },\n    {\n      \"city\": \"Los Angeles\",\n      \"student_count\": 25\n    },\n    {\n      \"city\": \"Chicago\",\n      \"student_count\": 30\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 8,\n      \"student_ids\": [\n        \"S003\",\n        \"S004\",\n        \"S005\",\n        \"S006\",\n        \"S007\",\n        \"S008\",\n        \"S009\",\n        \"S010\"\n      ]\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 5,\n      \"student_ids\": [\n        \"S011\",\n        \"S012\",\n        \"S013\",\n        \"S014\",\n        \"S015\"\n      ]\n    },\n    \"missing_cities\": {\n      \"count\": 3,\n      \"student_ids\": [\n        \"S016\",\n        \"S017\",\n        \"S018\"\n      ]\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 4,\n      \"student_ids\": [\n        \"S019\",\n        \"S020\",\n        \"S021\",\n        \"S022\"\n      ]\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 2,\n      \"student_ids\": [\n        \"S023\",\n        \"S024\"\n      ]\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 1,\n      \"records\": [\n        {\n          \"student_id\": \"S025\"\n        }\n      ]\n    },\n    \"duplicate_students\": {\n      \"count\": 5,\n      \"student_ids\": [\n        \"S026\",\n        \"S027\",\n        \"S028\",\n        \"S029\",\n        \"S030\"\n      ]\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"2023-01\",\n      \"enrollment_count\": 10\n    },\n    {\n      \"month\": \"2023-02\",\n      \"enrollment_count\": 15\n    },\n    {\n      \"month\": \"2023-03\",\n      \"enrollment_count\": 20\n    },\n    {\n      \"month\": \"2023-04\",\n      \"enrollment_count\": 25\n    },\n    {\n      \"month\": \"2023-05\",\n      \"enrollment_count\": 30\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": \"2023-01-05\",\n    \"latest_date\": \"2023-05-15\"\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"High number of invalid emails\",\n      \"action\": \"Implement email validation checks\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Missing or invalid phone numbers\",\n      \"action\": \"Ensure phone number collection adheres to proper formats\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Inconsistent cities across records\",\n      \"action\": \"Standardize city name formats and validate against a list\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Records with unknown fee statuses\",\n      \"action\": \"Affirm payment status for all students prior to enrollment\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Duplicate student records\",\n      \"action\": \"Implement checks to prevent duplicate entries during data entry\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 1
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_0609e5c83e50b135006ad0c4f00aec87d2ad2d5aabf4c0fb54",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Data quality issues identified\",\n      \"action\": \"Implement validation rules for email formats, phone number lengths, and date formats.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Inconsistent course naming\",\n      \"action\": \"Standardize course naming conventions across the dataset.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Missing city information\",\n      \"action\": \"Enforce city data entry during enrollment process or automate lookups.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Duplicates in student records\",\n      \"action\": \"Conduct regular audits to identify and resolve duplicate Student_ID entries.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Incomplete fee payment records\",\n      \"action\": \"Ensure students provide clear fee payment statuses during enrollment.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 2
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_0c52d6f06a050a9d006ad0c4f86bcc87d2914050d116b996bf",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Invalid Emails\",\n      \"action\": \"Implement email validation at the point of entry.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Missing or Invalid Phone Numbers\",\n      \"action\": \"Enforce phone number format during data entry.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Missing Cities\",\n      \"action\": \"Require City information as mandatory during enrollment.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Missing or Invalid Enrollment Dates\",\n      \"action\": \"Validate date formats before entry.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Inconsistent Course Names\",\n      \"action\": \"Standardize course names through a controlled vocabulary.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 3
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_04c200e5f9100ac3006ad0c4fff9fc87d2897d7bd51aec64ce",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Enhance validation for email addresses.\",\n      \"action\": \"Implement regex checks to ensure valid email formats.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Standardize phone number formats.\",\n      \"action\": \"Enforce systematic data entry guidelines for phone numbers.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Ensure cities are consistently formatted.\",\n      \"action\": \"Apply a title case transformation for all city entries.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Implement checks for enrollment dates.\",\n      \"action\": \"Ensure all dates are in YYYY-MM-DD format and validate against current dates.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Review fee payment status entries for correctness.\",\n      \"action\": \"Standardize fee payment responses (Yes/No) and ensure all entries are captured correctly.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 4
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_074899c7997846f4006ad0c506fd5887d2b09a97741a21efd3",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Incomplete data entries\",\n      \"action\": \"Implement mandatory fields in data collection to ensure essential information is captured.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Invalid email formats\",\n      \"action\": \"Introduce validation checks for email formats to ensure all entries meet standard criteria.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Inconsistent course naming\",\n      \"action\": \"Standardize course names in the dataset to eliminate variations and improve reporting accuracy.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Unreliable phone number formats\",\n      \"action\": \"Establish a uniform format for phone numbers during data entry to enhance data integrity.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Misalignment of columns\",\n      \"action\": \"Regularly review data inputs to ensure alignment with expected formats and field types.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 5
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_0cccf74c959964d2006ad0c50fd8e087d29696d13f3068e070",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Invalid Email Formats\",\n      \"action\": \"Implement email validation rules during data entry.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Missing or Invalid Phone Numbers\",\n      \"action\": \"Require phone numbers to be verified before enrollment.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Missing Cities\",\n      \"action\": \"Make city input mandatory during enrollment.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Invalid Enrollment Dates\",\n      \"action\": \"Standardize date formats and validate date entries.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Fee Payment Status Inconsistencies\",\n      \"action\": \"Clarify fee status options and ensure accurate data entry.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 6
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_069f7b3047e97ae3006ad0c516e06887d2ba0ba8c21a6c8c9e",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Invalid email formats detected.\",\n      \"action\": \"Implement email validation rules during data entry.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Missing or invalid phone numbers identified.\",\n      \"action\": \"Standardize phone number format and validate all entries.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Several cities are missing from records.\",\n      \"action\": \"Require city information during registration.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Enrollment dates contain invalid formats.\",\n      \"action\": \"Ensure date entries adhere to YYYY-MM-DD format.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Inconsistent fee payment statuses found.\",\n      \"action\": \"Standardize fee status options to 'Paid' or 'Unpaid' only.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 7
+        }
+      },
+      {
+        "json": {
+          "output": [
+            {
+              "id": "msg_0d2e3890ece03086006ad0c51d5a5c87d29e4b713062ae1337",
+              "type": "message",
+              "status": "completed",
+              "content": [
+                {
+                  "type": "output_text",
+                  "annotations": [],
+                  "logprobs": [],
+                  "text": "{\n  \"report_title\": \"Student Data Analysis Report\",\n  \"executive_summary\": \"\",\n  \"overall_statistics\": {\n    \"total_records\": 0,\n    \"unique_students\": 0,\n    \"duplicate_records\": 0,\n    \"records_with_data_quality_issues\": 0\n  },\n  \"course_distribution\": [\n    {\n      \"course\": \"Python\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Machine Learning\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    },\n    {\n      \"course\": \"Data Science\",\n      \"student_count\": 0,\n      \"percentage\": 0\n    }\n  ],\n  \"invalid_or_unrecognized_courses\": {\n    \"count\": 0,\n    \"records\": []\n  },\n  \"fee_payment_summary\": {\n    \"paid\": 0,\n    \"unpaid\": 0,\n    \"unknown\": 0,\n    \"paid_percentage\": 0\n  },\n  \"city_distribution\": [\n    {\n      \"city\": \"\",\n      \"student_count\": 0\n    }\n  ],\n  \"data_quality_report\": {\n    \"invalid_emails\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_phones\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_cities\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_dates\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"missing_or_invalid_fee_statuses\": {\n      \"count\": 0,\n      \"student_ids\": []\n    },\n    \"possible_column_misalignment\": {\n      \"count\": 0,\n      \"records\": []\n    },\n    \"duplicate_students\": {\n      \"count\": 0,\n      \"student_ids\": []\n    }\n  },\n  \"monthly_enrollment\": [\n    {\n      \"month\": \"YYYY-MM\",\n      \"enrollment_count\": 0\n    }\n  ],\n  \"enrollment_date_range\": {\n    \"earliest_date\": null,\n    \"latest_date\": null\n  },\n  \"recommendations\": [\n    {\n      \"priority\": 1,\n      \"issue\": \"Invalid email addresses detected.\",\n      \"action\": \"Implement a validation rule to ensure email format is correct.\"\n    },\n    {\n      \"priority\": 2,\n      \"issue\": \"Missing or invalid phone numbers.\",\n      \"action\": \"Standardize phone number entries to ensure a minimum of 10 digits.\"\n    },\n    {\n      \"priority\": 3,\n      \"issue\": \"Missing city information.\",\n      \"action\": \"Enforce requirement for city entry during enrollment.\"\n    },\n    {\n      \"priority\": 4,\n      \"issue\": \"Invalid or missing enrollment dates.\",\n      \"action\": \"Verify dates format and create a prompt for corrections during data input.\"\n    },\n    {\n      \"priority\": 5,\n      \"issue\": \"Unrecognized fee payment status.\",\n      \"action\": \"Clarify and normalize fee payment statuses to ensure accurate reporting.\"\n    }\n  ]\n}"
+                }
+              ],
+              "role": "assistant"
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 8
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a rich message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f22e99b0-93e5-48bb-ab5f-27824a8825a2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78d976ecf448cb0c4574834a9b72b018ad50c470ea5addde061165fb33c0e040"
+  },
+  "nodeGroups": [],
+  "id": "Hd70yRVl1TFIgMHP",
+  "tags": []
+}

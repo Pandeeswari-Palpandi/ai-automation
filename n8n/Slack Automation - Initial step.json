@@ -1,0 +1,78 @@
+{
+  "name": "Slack Automation - Initial step",
+  "nodes": [
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C9EDKSG05",
+          "mode": "list",
+          "cachedResultName": "n8n-automation"
+        },
+        "text": "=Hello {{ $json.body.name }}!\n\nMessage Received:  \n {{ $json.body.message }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "88b3b2bf-fc23-467a-9237-09033296ce9d",
+      "name": "Send a message",
+      "webhookId": "5d8eead4-74f8-4cff-a4c0-f58d29f0cc93",
+      "credentials": {
+        "slackApi": {
+          "id": "n2L8np18LQXMZkbs",
+          "name": "slackn8nAutomation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-test",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        0
+      ],
+      "id": "077f17d0-0b38-4412-a699-8d9ac896d18d",
+      "name": "Webhook",
+      "webhookId": "e925167f-9738-4e64-877d-0a1f29285b5e"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "797cdeae-f8e6-40b0-b061-497e5c2e70d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78d976ecf448cb0c4574834a9b72b018ad50c470ea5addde061165fb33c0e040"
+  },
+  "nodeGroups": [],
+  "id": "RvXpwrmHVMXA4FX9",
+  "tags": []
+}

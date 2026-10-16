@@ -1,0 +1,180 @@
+{
+  "name": "Google Sheets to GMail",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        -208
+      ],
+      "id": "5382d630-0ef7-4e9a-a440-f63f67bc0331",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1L3hQZkZX7ooUZr2jYWZ0FeKwnHp8y1X0noLmZwp1v3s",
+          "mode": "list",
+          "cachedResultName": "SheetToGmail",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1L3hQZkZX7ooUZr2jYWZ0FeKwnHp8y1X0noLmZwp1v3s/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1L3hQZkZX7ooUZr2jYWZ0FeKwnHp8y1X0noLmZwp1v3s/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -464,
+        -208
+      ],
+      "id": "22ab1e80-6785-462b-ac4c-dd77fc1675ad",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "B5BYV7GhlbboV45p",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\n\nif (rows.length === 0) {\n  return [\n    {\n      json: {\n        subject: \"Google Sheet Update\",\n        body: `\n          <p>Hi,</p>\n          <p>There is no data available in the Google Sheet.</p>\n          <p>Regards,<br>Your Automation Bot</p>\n        `\n      }\n    }\n  ];\n}\n\nlet body = `\n  <p>Hi,</p>\n\n  <p>Here is the latest data from the Google Sheet:</p>\n\n  <ul>\n`;\n\nrows.forEach((item) => {\n  const data = item.json;\n\n  body += `\n    <li>\n      <strong>Name:</strong> ${data.Name || \"N/A\"}<br>\n      <strong>Course:</strong> ${data.Course || \"N/A\"}<br>\n      <strong>Status:</strong> ${data.Status || \"N/A\"}\n    </li>\n    <br>\n  `;\n});\n\nbody += `\n  </ul>\n\n  <p>Regards,<br>\n  <strong>Your Automation Bot</strong></p>\n`;\n\nreturn [\n  {\n    json: {\n      subject: \"Data Summary from Google Sheet\",\n      body: body\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -224
+      ],
+      "id": "d911f974-b522-4c0d-ab60-9fb0ca1e2deb",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "pandeeswari.learning@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        -224
+      ],
+      "id": "7a9cdfa2-2775-4163-8048-3266ef42bad1",
+      "name": "Send a message",
+      "webhookId": "ca9d3d56-3746-46c6-bb1f-fd15e8de9ee7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "q2aHbXXjNMqdp6VD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5d1bba38-590e-4b61-b5f4-959f08c64c8d",
+              "leftValue": "={{ $json.Name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        -208
+      ],
+      "id": "ae718480-0573-4ff8-84ff-7bcc8b7558ae",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f64c3345-dd90-4466-b1eb-34e7129b793f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78d976ecf448cb0c4574834a9b72b018ad50c470ea5addde061165fb33c0e040"
+  },
+  "nodeGroups": [],
+  "id": "HYRTJv7zDGbW9ajN",
+  "tags": []
+}

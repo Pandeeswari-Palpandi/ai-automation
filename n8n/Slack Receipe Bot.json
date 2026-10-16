@@ -1,0 +1,218 @@
+{
+  "name": "Slack Receipe Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "message"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C0C9KMG18M8",
+          "mode": "list",
+          "cachedResultName": "receipe-bot"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -208
+      ],
+      "id": "368d7f88-3b9d-41bf-bf70-bab0f5e12729",
+      "name": "Slack Trigger",
+      "webhookId": "07fcf66a-2e95-4bdc-ab0e-ae6fc931c0a9",
+      "credentials": {
+        "slackApi": {
+          "id": "n2L8np18LQXMZkbs",
+          "name": "slackn8nAutomation"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "87a2c4ed-30a5-4c87-83bd-51b26d738611",
+              "name": "receipe",
+              "value": "={{ $json.blocks[0].elements[0].elements[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "bb8683bb-7952-44b5-954c-55672314204f",
+              "name": "channel",
+              "value": "={{ $json.channel }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -496,
+        -208
+      ],
+      "id": "7f04cce9-c646-4630-87e0-f683d20e49dc",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=List all the products and ingredients needed to make {{ $json.receipe }}\n\nReturn a clear bulleted list with approximate quantities. Keep it short and practical.\n\nIf the recipe name is unclear, ask the user to rephrase it.\n\nGive the result only in JSON format. template sshould be \n{\"receipe\" : \"\",\n\"products\" : \"\"}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -272,
+        -208
+      ],
+      "id": "6172637e-b42e-4ff5-ad02-3aadfdf2e3aa",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        -32
+      ],
+      "id": "70a68d6f-360d-4621-bd70-50446ac97380",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LZebZiPEkq1R9Xit",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.text || '';\n\nlet data;\n\ntry {\n  data = JSON.parse(\n    raw\n      .replace(/```json\\s*/i, '')\n      .replace(/```\\s*/g, '')\n      .trim()\n  );\n} catch (error) {\n  throw new Error('AI response is not valid JSON');\n}\n\n// Recipe comes directly from the AI response\nconst recipe = data.recipe || 'Recipe';\n\n// Products is an array\nconst products = data.products || [];\n\nconst ingredients = products\n  .map(item => `• ${item.ingredient}: ${item.quantity}`)\n  .join('\\n');\n\nconst message =\n  `🍽️ Ingredients for ${recipe}\\n\\n${ingredients}`;\n\nreturn [\n  {\n    json: {\n      recipe,\n      channel: $('Edit Fields').first().json.channel,\n      message\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        -208
+      ],
+      "id": "efad972d-4100-42b8-a2b7-253a87e8cea7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C9KMG18M8",
+          "mode": "list",
+          "cachedResultName": "receipe-bot"
+        },
+        "text": "={{ $json.message }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        352,
+        -208
+      ],
+      "id": "3bb089f9-c77e-45ce-962b-0e293830e9b4",
+      "name": "Send a message",
+      "webhookId": "06a81619-f870-431c-a691-121572801e23",
+      "credentials": {
+        "slackApi": {
+          "id": "n2L8np18LQXMZkbs",
+          "name": "slackn8nAutomation"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Slack Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2d60f734-489a-4c03-8a23-8eca2806e529",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78d976ecf448cb0c4574834a9b72b018ad50c470ea5addde061165fb33c0e040"
+  },
+  "nodeGroups": [],
+  "id": "ipfzuURO1wd6M9sl",
+  "tags": []
+}

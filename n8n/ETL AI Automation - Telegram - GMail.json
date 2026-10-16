@@ -1,0 +1,167 @@
+{
+  "name": "ETL AI Automation - Telegram - GMail",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -704,
+        -160
+      ],
+      "id": "13117a73-2e60-4437-98d6-641c7887000e",
+      "name": "Telegram Trigger",
+      "webhookId": "1f930125-74ec-4296-936a-43f31c08d315",
+      "credentials": {
+        "telegramApi": {
+          "id": "hwqKpWrFPHSS3nzp",
+          "name": "CustomizedMailBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create a customized motivational email for the user.\n\ninput: {{ $json.message.text }}\n\nIf user is not giving any username or email trigger command give the reply gracefully that I don't have enough information to send the mail.\n\nGive the output in JSON format. The template will be \n{ \"To\" : \"\",\n  \"Subject\" : \"\",\n  \"body\" : \"\"}\n\nNo Explanations. No Markdowns.\n\nAlways keep my name \"Pandeeswari Palpandi\" in Best Regards.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -480,
+        -160
+      ],
+      "id": "ddde438b-2643-46c9-96ae-be21d3adaa69",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        16
+      ],
+      "id": "b508b027-b388-4e01-bf99-759525cf21bc",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LZebZiPEkq1R9Xit",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst items = $input.all();\n\nreturn items.map(item => {\n  let raw = item.json.output ?? item.json.text ?? item.json.response ?? item.json;\n\n  // Convert AI output to a string\n  if (typeof raw !== \"string\") {\n    raw = JSON.stringify(raw);\n  }\n\n  // Remove Markdown JSON code fences\n  raw = raw\n    .replace(/```json\\s*/gi, \"\")\n    .replace(/```\\s*/g, \"\")\n    .trim();\n\n  // Parse the AI-generated JSON\n  let email;\n\n  try {\n    email = JSON.parse(raw);\n  } catch (error) {\n    // Handle output that contains escaped JSON as a string\n    try {\n      email = JSON.parse(\n        raw.replace(/^\"|\"$/g, \"\").replace(/\\\\\"/g, '\"')\n      );\n    } catch (innerError) {\n      throw new Error(\"Invalid AI email JSON: \" + error.message);\n    }\n  }\n\n  // Clean text values\n  const cleanText = value =>\n    String(value ?? \"\")\n      .replace(/\\\\n/g, \"\\n\")\n      .replace(/\\r\\n?/g, \"\\n\")\n      .trim();\n\n  const result = {\n    To: cleanText(email.To),\n    Subject: cleanText(email.Subject),\n    body: cleanText(email.body)\n  };\n\n  return { json: result };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -160
+      ],
+      "id": "09d9a4d4-f511-4e5b-8fdc-eab9abce8364",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.To }}",
+        "subject": "={{ $json.Subject }}",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -160
+      ],
+      "id": "ae067b82-16d5-43ce-a3d9-1369f7591bf8",
+      "name": "Send a message",
+      "webhookId": "54176c76-f847-433d-a607-73e3fa93cf5a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "q2aHbXXjNMqdp6VD",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0c8441ae-147b-4b4f-8d8d-ccfe706c72b1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78d976ecf448cb0c4574834a9b72b018ad50c470ea5addde061165fb33c0e040"
+  },
+  "nodeGroups": [],
+  "id": "zYESQ808JZOHQQV3",
+  "tags": []
+}
